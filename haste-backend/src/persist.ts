@@ -9,11 +9,11 @@ if (!existsSync(db_dir)) {
 	mkdirSync(db_dir)
 }
 
-const lockfile_location = join(db_dir, 'store.lock')
-const db_location = join(db_dir, 'store.db')
-const cache_db_location = join(db_dir, 'cache.store.db')
-
-enum AllowedExecution {}
+export enum AllowedExecution {
+	CheckDeploymentStatus,
+	ReadEnvironment,
+	Deploy,
+}
 
 type DataState = {
 	root_access: boolean
@@ -26,78 +26,94 @@ class JSONParseFail extends Error {
 	}
 }
 
-export class PersistentStore {
-	static hashmap_state: {
-		[key: string]: DataState
-	} = {}
+export class PersistentStore<T extends any = DataState> {
+	lockfile_location = join(db_dir, 'store.lock')
+	db_location: string
+	cache_db_location: string
 
-	static is_debug = true
-	static _name = ''
-	static debug(...args: any[]) {
+	private hashmap_state: {
+		app_state: { [key: string]: string }
+		data: { [key: string]: T }
+	} = { app_state: {}, data: {} }
+
+	is_debug = true
+	private _name = ''
+
+	constructor(name: string) {
+		this._name = name
+
+		this.cache_db_location = join(db_dir, `${name}.cache.store.db`)
+		this.db_location = join(db_dir, `${name}.store.db`)
+	}
+	debug(...args: any[]) {
 		if (this.is_debug) {
-			console.debug('[DEBUG]', this._name, ...args)
+			console.debug('[\x1b[36m', this._name, 'INFO', '\x1b[0m]', ...args)
 		}
 	}
 
-	static is_executing = false
+	is_executing = false
 
-	static init_status = false
+	init_status = false
 
-	static create_lock(uid: string) {
-		writeFileSync(lockfile_location, uid)
+	create_lock(uid: string) {
+		writeFileSync(this.lockfile_location, uid)
+		this.debug('locking')
 	}
 
-	static remove_lock() {
-		if (existsSync(lockfile_location)) unlinkSync(lockfile_location)
+	remove_lock() {
+		if (existsSync(this.lockfile_location)) unlinkSync(this.lockfile_location)
+		this.debug('lock removed')
 	}
 
-	static can_execute() {
-		if (existsSync(lockfile_location)) {
+	can_execute() {
+		if (existsSync(this.lockfile_location)) {
 			return false
 		}
 		return true
 	}
 
-	static read(uid: string) {
+	read(uid: string) {
 		this.debug('read')
 
 		// returns old value
 		// eventually consistent
-		return this.hashmap_state[uid]
+		return this.hashmap_state['data'][uid]
 	}
 
-	static init(polling_interval = 10_000) {
-		if (this.init_status) {
+	init(polling_interval = 10_000, init_data?: { uid: string; data: T }) {
+		if (this.init_status === false) {
 			this.debug('init')
-			this.poll()
+			this.poll(init_data)
 
 			setInterval(() => {
 				this.poll()
 			}, polling_interval)
 		}
+		this.debug(this.hashmap_state)
 		this.init_status = true
 	}
 
-	private static poll() {
-		this.debug('poll')
+	private poll(init_data?: { uid: string; data: T }) {
+		this.debug('Poll')
 		try {
-			if (existsSync(db_location)) {
+			if (existsSync(this.db_location)) {
 				if (this.can_execute() && this.is_executing === false) {
 					this.create_lock('init')
 					this.is_executing = true
 
 					try {
-						this.hashmap_state = JSON.parse(inflateSync(readFileSync(db_location)).toString())
+						this.hashmap_state = JSON.parse(inflateSync(readFileSync(this.db_location)).toString())
 					} catch (err) {
 						this.debug('poll error', err)
 
 						if (this.init_status === true) {
-							if (existsSync(cache_db_location)) {
+							if (existsSync(this.cache_db_location)) {
+								this.debug('using cache db')
 								try {
 									this.hashmap_state = JSON.parse(
-										inflateSync(readFileSync(cache_db_location)).toString()
+										inflateSync(readFileSync(this.cache_db_location)).toString()
 									)
-									copyFileSync(cache_db_location, db_location)
+									copyFileSync(this.cache_db_location, this.db_location)
 								} catch (err) {
 									this.debug('cache missing', err)
 									throw new JSONParseFail()
@@ -111,37 +127,44 @@ export class PersistentStore {
 					this.is_executing = false
 					this.remove_lock()
 				}
+			} else {
+				if (init_data)
+					this.write({
+						...init_data,
+					})
 			}
 		} catch (err) {
 			if (err instanceof JSONParseFail) {
 				this.debug('json parse error')
-				writeFileSync(db_location, deflateSync(JSON.stringify(this.hashmap_state)))
+				writeFileSync(this.db_location, deflateSync(JSON.stringify(this.hashmap_state)))
 			} else {
-				this.hashmap_state = {}
+				this.hashmap_state = { app_state: {}, data: {} }
 			}
 			this.remove_lock()
 		}
 	}
 
-	static async write({
+	async write({
 		uid = crypto.randomBytes(16).toString('hex'),
 		data,
 	}: {
 		uid: string
-		data: DataState
+		data: T
+		persist?: boolean
 	}): Promise<void> {
+		this.debug(uid, this.hashmap_state)
 		if (this.can_execute() && this.is_executing === false) {
 			this.create_lock(uid)
-			this.debug('write')
+			this.debug('write started')
 
 			this.is_executing = true
 
-			this.hashmap_state[uid] = data
+			this.hashmap_state['data'][uid] = data
 
-			writeFileSync(cache_db_location, deflateSync(JSON.stringify(this.hashmap_state)))
-			writeFileSync(db_location, deflateSync(JSON.stringify(this.hashmap_state)))
+			writeFileSync(this.cache_db_location, deflateSync(JSON.stringify(this.hashmap_state)))
+			writeFileSync(this.db_location, deflateSync(JSON.stringify(this.hashmap_state)))
 
-			copyFileSync(cache_db_location, db_location)
+			copyFileSync(this.cache_db_location, this.db_location)
 
 			this.is_executing = false
 			this.remove_lock()
@@ -157,4 +180,3 @@ export class PersistentStore {
 		}
 	}
 }
-PersistentStore.init()
