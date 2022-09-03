@@ -14,6 +14,7 @@ export enum AllowedExecution {
 	CheckDeploymentStatus,
 	ReadEnvironment,
 	Deploy,
+	AddServer,
 }
 
 type DataState = {
@@ -46,6 +47,7 @@ export class PersistentStore<T extends any = DataState> {
 		this.cache_db_location = join(db_dir, `${name}.cache.store.db`)
 		this.db_location = join(db_dir, `${name}.store.db`)
 	}
+
 	debug(...args: any[]) {
 		if (this.is_debug) {
 			console.debug('[\x1b[36m', this._name, 'INFO', '\x1b[0m]', ...args)
@@ -81,12 +83,14 @@ export class PersistentStore<T extends any = DataState> {
 		return this.hashmap_state['data'][uid]
 	}
 
-	init(polling_interval = 10_000, init_data?: { uid: string; data: T }) {
+	interval: NodeJS.Timer
+
+	init(polling_interval = 10_000, init_data?: { uid: string; data: T }[]) {
 		if (this.init_status === false) {
 			this.debug('init')
 			this.poll(init_data)
 
-			setInterval(() => {
+			this.interval = setInterval(() => {
 				this.poll()
 			}, polling_interval)
 		}
@@ -94,7 +98,7 @@ export class PersistentStore<T extends any = DataState> {
 		this.init_status = true
 	}
 
-	private poll(init_data?: { uid: string; data: T }) {
+	private poll(init_data?: { uid: string; data: T }[]) {
 		this.debug('Poll')
 		try {
 			if (existsSync(this.db_location)) {
@@ -130,9 +134,11 @@ export class PersistentStore<T extends any = DataState> {
 				}
 			} else {
 				if (init_data)
-					this.write({
-						...init_data,
-					})
+					for (const data of init_data) {
+						this.write({
+							...data,
+						})
+					}
 			}
 		} catch (err) {
 			if (err instanceof JSONParseFail) {
@@ -144,11 +150,17 @@ export class PersistentStore<T extends any = DataState> {
 			this.remove_lock()
 		}
 
-		if (init_data && this.hashmap_state.data[init_data.uid] === undefined) {
+		if (init_data) {
 			this.debug('init data')
-			this.write({
-				...init_data,
-			})
+			for (const data of init_data) {
+				if (this.read(data.uid) === undefined) {
+					for (const data of init_data) {
+						this.write({
+							...data,
+						})
+					}
+				}
+			}
 		}
 	}
 

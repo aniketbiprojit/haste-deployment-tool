@@ -1,29 +1,49 @@
 import './config'
 import { AllowedExecution, PersistentStore } from './persist'
 import express from 'express'
-import axios from 'axios'
+import axios, { AxiosError } from 'axios'
 import { sign } from 'jsonwebtoken'
 import { isAuthorizedMiddleware } from './utils'
+import { join } from 'path'
+
+import './pm2_log'
+import { get_list, get_logs } from './pm2_log'
 
 const port = process.env.PORT || 8080
 
 export const store = new PersistentStore('master-thread')
 export const servers = new PersistentStore<{ path: string }>('servers')
 
-store.init(10000, {
-	data: {
-		allowed_executions: [0],
-		root_access: true,
+store.init(10000, [
+	{
+		data: {
+			allowed_executions: [0],
+			root_access: true,
+		},
+		uid: process.env.SUDO_EMAIL!,
 	},
-	uid: process.env.SUDO_EMAIL!,
-})
+])
 
-servers.init(10000, {
-	uid: 'server1',
-	data: {
-		path: '/Users/aniketchowdhury/Work/zoho-server',
+servers.init(10000, [
+	{
+		uid: 'server1',
+		data: {
+			path: join(__dirname, '..', 'test', 'server1'),
+		},
 	},
-})
+	{
+		uid: 'server2',
+		data: {
+			path: join(__dirname, '..', 'test', 'server2'),
+		},
+	},
+	{
+		uid: 'server3',
+		data: {
+			path: join(__dirname, '..', 'test', 'server3'),
+		},
+	},
+])
 
 const local_store = new PersistentStore<string>('local-state')
 local_store.init()
@@ -97,7 +117,13 @@ app.get('/', async (req, res) => {
 			return res.status(400).send({ error: 'bad request' })
 		}
 	} catch (err) {
+		if (err instanceof AxiosError) {
+			return res
+				.status((err.status as unknown as number) || 500)
+				.send({ error: 'Failed', message: err?.response?.data })
+		}
 		console.error(err)
+
 		return res.status(500).send({ error: 'Failed' })
 	}
 })
@@ -111,14 +137,46 @@ app.post(
 		}
 		const { email, allowed_executions } = req.body
 
-		await store.write({
-			uid: email,
-			data: {
-				allowed_executions,
-				root_access: false,
-			},
-		})
+		if (email !== process.env.SUDO_EMAIL)
+			await store.write({
+				uid: email,
+				data: {
+					allowed_executions,
+					root_access: false,
+				},
+			})
 		return res.send({ status: 'ok' })
+	}
+)
+
+app.post(
+	'/add-server',
+	(req, res, next) => isAuthorizedMiddleware(req, res, next, AllowedExecution.AddServer),
+	async (req, res) => {
+		if (!checkKeys(['server', 'allowed_executions'], req.body)) {
+			return res.status(400).send({ error: 'bad request' })
+		}
+		const { server_id, server_data } = req.body
+
+		if (!servers.read(server_id)) {
+			await servers.write({
+				uid: server_id,
+				data: server_data,
+			})
+		}
+		return res.send({ status: 'ok' })
+	}
+)
+
+app.get(
+	'/running',
+	(req, res, next) => isAuthorizedMiddleware(req, res, next, AllowedExecution.CheckDeploymentStatus),
+	async (_req, res) => {
+		try {
+			return res.send(await get_list())
+		} catch (err) {
+			return res.status(500).send({ error: 'Failed' })
+		}
 	}
 )
 
@@ -126,13 +184,17 @@ app.get(
 	'/logs',
 	(req, res, next) => isAuthorizedMiddleware(req, res, next, AllowedExecution.CheckDeploymentStatus),
 	async (req, res) => {
-		const { server_id } = req.query as { server_id: string }
+		try {
+			const { server_id, lines } = req.query as { server_id: string; lines?: string }
 
-		const server_logs = servers.read(server_id)
+			const server_logs_public = servers.read(server_id)
 
-		console.log(server_logs, server_id)
-		if (server_logs) return res.send(server_logs)
-		return res.status(400).send('Bad Request')
+			if (server_logs_public) return res.send(await get_logs(server_id, lines))
+			return res.status(400).send('Bad Request')
+		} catch (err) {
+			console.error(err)
+			return res.status(500).send({ error: 'Failed' })
+		}
 	}
 )
 
