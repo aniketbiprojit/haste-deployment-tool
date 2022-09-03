@@ -2,12 +2,13 @@ import './config'
 import { AllowedExecution, PersistentStore } from './persist'
 import express from 'express'
 import axios, { AxiosError } from 'axios'
-import { sign } from 'jsonwebtoken'
+import { sign, verify } from 'jsonwebtoken'
 import { isAuthorizedMiddleware } from './utils'
 import { join } from 'path'
 
 import './pm2_log'
 import { get_list, get_logs } from './pm2_log'
+import cors from 'cors'
 
 const port = process.env.PORT || 8080
 
@@ -50,6 +51,8 @@ local_store.init()
 
 const app = express()
 
+app.use(cors())
+
 app.use(express.json())
 
 const checkKeys = (keys: string[], obj: Object) => {
@@ -60,6 +63,20 @@ const checkKeys = (keys: string[], obj: Object) => {
 }
 
 const secret = process.env.SECRET_KEY!
+
+app.get('/auth', async (req, res) => {
+	try {
+		const jwt = req.headers.authorization!.split(' ')[1]
+		const { email } = verify(jwt, secret) as { email: string }
+		if (email) return res.status(200).send()
+		else {
+			return res.status(403).send('Internal server error')
+		}
+	} catch (err) {
+		console.error(err)
+		return res.status(500).send('Internal server error')
+	}
+})
 
 app.get('/', async (req, res) => {
 	console.log(req.query)
@@ -111,7 +128,7 @@ app.get('/', async (req, res) => {
 				return res.status(401).send('You are not allowed to access this service')
 			} else {
 				const token = sign({ email }, secret)
-				return res.send({ status: 'ok', execution_data: token })
+				return res.send({ status: 'ok', token })
 			}
 		} else {
 			return res.status(400).send({ error: 'bad request' })

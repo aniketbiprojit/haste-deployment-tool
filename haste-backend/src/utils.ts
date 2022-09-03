@@ -14,10 +14,8 @@ export const isAuthorizedMiddleware = (
 	try {
 		if (req.headers.authorization) {
 			const jwt = req.headers.authorization!.split(' ')[1]
-			console.log({ jwt })
 			const { email } = verify(jwt, secret) as { email: string }
 			if (isAuthorized(email, execution)) {
-				console.log('next')
 				next()
 				return
 			} else {
@@ -33,7 +31,7 @@ export const isAuthorizedMiddleware = (
 		return res.status(500).send('Internal server error')
 	}
 }
-const isAuthorized = (email: string, execution: AllowedExecution) => {
+export const isAuthorized = (email: string, execution: AllowedExecution) => {
 	const data = store.read(email)
 	if (!data) return false
 	return data.allowed_executions.includes(execution) || data.root_access === true
