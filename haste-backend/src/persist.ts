@@ -10,6 +10,7 @@ if (!existsSync(db_dir)) {
 }
 
 export enum AllowedExecution {
+	AddEmail,
 	CheckDeploymentStatus,
 	ReadEnvironment,
 	Deploy,
