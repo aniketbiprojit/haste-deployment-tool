@@ -143,6 +143,13 @@ export class PersistentStore<T extends any = DataState> {
 			}
 			this.remove_lock()
 		}
+
+		if (init_data && this.hashmap_state.data[init_data.uid] === undefined) {
+			this.debug('init data')
+			this.write({
+				...init_data,
+			})
+		}
 	}
 
 	async write({

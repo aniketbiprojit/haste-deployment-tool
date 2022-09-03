@@ -1,7 +1,7 @@
 import { AllowedExecution } from './persist'
 import { NextFunction, Request, Response } from 'express'
 import { store } from './index'
-import { verify } from 'jsonwebtoken'
+import { JsonWebTokenError, verify } from 'jsonwebtoken'
 
 const secret = process.env.SECRET_KEY!
 
@@ -11,11 +11,26 @@ export const isAuthorizedMiddleware = (
 	next: NextFunction,
 	execution: AllowedExecution
 ) => {
-	const { email } = verify(req.headers.authorization!, secret) as { email: string }
-	if (isAuthorized(email, execution)) {
-		next()
-	} else {
-		res.status(401).send('Unauthorized')
+	try {
+		if (req.headers.authorization) {
+			const jwt = req.headers.authorization!.split(' ')[1]
+			console.log({ jwt })
+			const { email } = verify(jwt, secret) as { email: string }
+			if (isAuthorized(email, execution)) {
+				console.log('next')
+				next()
+				return
+			} else {
+				return res.status(403).send('Forbidden')
+			}
+		}
+		return res.status(401).send('Unauthorized')
+	} catch (err) {
+		if (err instanceof JsonWebTokenError) {
+			console.error(err)
+			return res.status(401).send('JWT malformed or expired')
+		} else console.error(err)
+		return res.status(500).send('Internal server error')
 	}
 }
 const isAuthorized = (email: string, execution: AllowedExecution) => {

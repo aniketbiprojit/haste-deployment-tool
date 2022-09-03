@@ -1,18 +1,14 @@
+import './config'
 import { AllowedExecution, PersistentStore } from './persist'
 import express from 'express'
-import { config } from 'dotenv'
-import { join } from 'path'
 import axios from 'axios'
 import { sign } from 'jsonwebtoken'
-import { randomUUID } from 'crypto'
 import { isAuthorizedMiddleware } from './utils'
-config({
-	path: join(__dirname, '..', '.env'),
-})
 
 const port = process.env.PORT || 8080
 
 export const store = new PersistentStore('master-thread')
+export const servers = new PersistentStore<{ path: string }>('servers')
 
 store.init(10000, {
 	data: {
@@ -20,6 +16,13 @@ store.init(10000, {
 		root_access: true,
 	},
 	uid: process.env.SUDO_EMAIL!,
+})
+
+servers.init(10000, {
+	uid: 'server1',
+	data: {
+		path: '/Users/aniketchowdhury/Work/zoho-server',
+	},
 })
 
 const local_store = new PersistentStore<string>('local-state')
@@ -116,6 +119,20 @@ app.post(
 			},
 		})
 		return res.send({ status: 'ok' })
+	}
+)
+
+app.get(
+	'/logs',
+	(req, res, next) => isAuthorizedMiddleware(req, res, next, AllowedExecution.CheckDeploymentStatus),
+	async (req, res) => {
+		const { server_id } = req.query as { server_id: string }
+
+		const server_logs = servers.read(server_id)
+
+		console.log(server_logs, server_id)
+		if (server_logs) return res.send(server_logs)
+		return res.status(400).send('Bad Request')
 	}
 )
 
