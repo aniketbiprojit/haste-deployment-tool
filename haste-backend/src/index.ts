@@ -9,6 +9,7 @@ import { join } from 'path'
 import './pm2_log'
 import { get_list, get_logs } from './pm2_log'
 import cors from 'cors'
+import { readFileSync } from 'fs'
 
 const port = process.env.PORT || 8080
 
@@ -25,27 +26,16 @@ store.init(10000, [
 	},
 ])
 
-servers.init(10000, [
-	{
-		uid: 'server1',
-		data: {
-			path: join(__dirname, '..', 'test', 'server1'),
-		},
-	},
-	{
-		uid: 'server2',
-		data: {
-			path: join(__dirname, '..', 'test', 'server2'),
-		},
-	},
-	{
-		uid: 'server3',
-		data: {
-			path: join(__dirname, '..', 'test', 'server3'),
-		},
-	},
-])
-
+{
+	let server_init_data
+	try {
+		server_init_data = JSON.parse(readFileSync(join(__dirname, '..', 'server_init_data.json'), 'utf-8').toString())
+	} catch (err) {
+		console.error('JSON init failed')
+		server_init_data = []
+	}
+	servers.init(10000, server_init_data)
+}
 const local_store = new PersistentStore<string>('local-state')
 local_store.init()
 
@@ -202,11 +192,17 @@ app.get(
 	(req, res, next) => isAuthorizedMiddleware(req, res, next, AllowedExecution.CheckDeploymentStatus),
 	async (req, res) => {
 		try {
-			const { server_id, lines } = req.query as { server_id: string; lines?: string }
+			const { server_id, lines, log_from_line, error_from_line } = req.query as {
+				server_id: string
+				lines?: string
+				log_from_line?: string
+				error_from_line?: string
+			}
 
 			const server_logs_public = servers.read(server_id)
 
-			if (server_logs_public) return res.send(await get_logs(server_id, lines))
+			if (server_logs_public)
+				return res.send(await get_logs({ name: server_id, lines, log_from_line, error_from_line }))
 			return res.status(400).send('Bad Request')
 		} catch (err) {
 			console.error(err)

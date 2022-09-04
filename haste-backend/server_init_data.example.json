@@ -1,0 +1,20 @@
+[
+	{
+		"uid": "server1",
+		"data": {
+			"path": "path/to/haste-backend/test/server1"
+		}
+	},
+	{
+		"uid": "server2",
+		"data": {
+			"path": "path/to/haste-backend/test/server2"
+		}
+	},
+	{
+		"uid": "server3",
+		"data": {
+			"path": "path/to/haste-backend/test/server3"
+		}
+	}
+]

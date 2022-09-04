@@ -38,14 +38,15 @@ export class PersistentStore<T extends any = DataState> {
 		data: { [key: string]: T }
 	} = { app_state: {}, data: {} }
 
-	is_debug = true
+	is_debug = false
 	private _name = ''
 
-	constructor(name: string) {
+	constructor(name: string, is_debug = process.env.DEBUG_PERSISTENCE === 'true') {
 		this._name = name
 
 		this.cache_db_location = join(db_dir, `${name}.cache.store.db`)
 		this.db_location = join(db_dir, `${name}.store.db`)
+		this.is_debug = is_debug
 	}
 
 	debug(...args: any[]) {
