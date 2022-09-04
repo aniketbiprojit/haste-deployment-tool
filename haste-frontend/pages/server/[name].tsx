@@ -9,9 +9,6 @@ const ServerData = () => {
 	const { isReady, query } = useRouter()
 
 	const getLogs = async () => {
-		// if (call_made === false) {
-		// call_made = true
-
 		const url = getAPI('logs')
 
 		url.searchParams.set('server_id', query.name as string)
@@ -51,8 +48,8 @@ const ServerData = () => {
 
 	const [, setCounter] = useState(0)
 
-	const logRef = useRef<HTMLTextAreaElement>(null)
-	const errorRef = useRef<HTMLTextAreaElement>(null)
+	const logRef = useRef<HTMLDivElement>(null)
+	const errorRef = useRef<HTMLDivElement>(null)
 
 	useEffect(() => {
 		if (logData?.logs && logRef.current) {
@@ -82,35 +79,37 @@ const ServerData = () => {
 				<>
 					<div className={styles.inner}>
 						<div className=''>
-							<textarea
+							<div
 								ref={logRef}
-								rows={20}
-								style={{ width: '450px' }}
-								onChange={() => {}}
-								value={
-									logData?.logs
-										.slice(20)
-										.replaceAll(String.fromCharCode(27), '')
-										.replaceAll(new RegExp(/\[[0-9]*m/g), '') ?? ''
-								}
-							/>
+								style={{ height: '480px', width: '380px', overflowY: 'scroll' }}
+								className='border w-full rounded p-5'
+							>
+								<pre>
+									<code>
+										{logData?.logs
+											.slice(20)
+											.replaceAll(String.fromCharCode(27), '')
+											.replaceAll(new RegExp(/\[[0-9]*m/g), '') ?? ''}
+									</code>
+								</pre>
+							</div>
 						</div>
 
 						<div className=''>
-							<textarea
+							<div
 								ref={errorRef}
-								rows={20}
-								style={{ width: '450px' }}
-								onChange={() => {}}
-								value={
-									logData?.errors
-										.slice(20)
-										.replaceAll(String.fromCharCode(27), '')
-										.replaceAll(new RegExp(/\[[0-9]*m/g), '') ??
-									'' ??
-									''
-								}
-							/>
+								style={{ height: '480px', width: '380px', overflowY: 'scroll' }}
+								className='border w-full rounded p-5'
+							>
+								<pre>
+									<code>
+										{logData?.errors
+											.slice(20)
+											.replaceAll(String.fromCharCode(27), '')
+											.replaceAll(new RegExp(/\[[0-9]*m/g), '') ?? ''}
+									</code>
+								</pre>
+							</div>
 						</div>
 					</div>
 				</>
