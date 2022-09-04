@@ -60,7 +60,7 @@ export class PersistentStore<T extends any = DataState> {
 	init_status = false
 
 	create_lock(uid: string) {
-		writeFileSync(this.lockfile_location, uid)
+		writeFileSync(this.lockfile_location, JSON.stringify({ [this._name]: uid }))
 		this.debug('locking')
 	}
 
@@ -85,15 +85,15 @@ export class PersistentStore<T extends any = DataState> {
 	}
 
 	interval: NodeJS.Timer
-
-	init(polling_interval = 10_000, init_data?: { uid: string; data: T }[]) {
+	polling_interval = 10_000
+	init(polling_interval = this.polling_interval, init_data?: { uid: string; data: T }[]) {
 		if (this.init_status === false) {
 			this.debug('init')
 			this.poll(init_data)
 
 			this.interval = setInterval(() => {
 				this.poll()
-			}, polling_interval)
+			}, polling_interval ?? this.polling_interval)
 		}
 		this.debug(this.hashmap_state)
 		this.init_status = true
@@ -104,7 +104,7 @@ export class PersistentStore<T extends any = DataState> {
 		try {
 			if (existsSync(this.db_location)) {
 				if (this.can_execute() && this.is_executing === false) {
-					// this.create_lock('init')
+					this.create_lock('init')
 					this.is_executing = true
 
 					try {
@@ -131,7 +131,7 @@ export class PersistentStore<T extends any = DataState> {
 					}
 
 					this.is_executing = false
-					// this.remove_lock()
+					this.remove_lock()
 				}
 			} else {
 				if (init_data)
@@ -165,14 +165,17 @@ export class PersistentStore<T extends any = DataState> {
 		}
 	}
 
-	async write({
-		uid = crypto.randomBytes(16).toString('hex'),
-		data,
-	}: {
-		uid: string
-		data: T
-		persist?: boolean
-	}): Promise<void> {
+	async write(
+		{
+			uid = crypto.randomBytes(16).toString('hex'),
+			data,
+		}: {
+			uid: string
+			data: T
+			persist?: boolean
+		},
+		num = 0
+	): Promise<void> {
 		this.debug(uid, this.hashmap_state)
 		if (this.can_execute() && this.is_executing === false) {
 			this.create_lock(uid)
@@ -190,14 +193,32 @@ export class PersistentStore<T extends any = DataState> {
 			this.is_executing = false
 			this.remove_lock()
 		} else {
-			this.debug('retry write')
+			this.debug(`retry write: ${num}`)
 
-			await new Promise((resolve) => {
-				setTimeout(() => {
-					resolve({})
-					this.write({ uid, data })
-				}, 5000)
-			})
+			if (num > 12) {
+				try {
+					// in case a thread stops midway but the lock is not removed
+					const data = JSON.parse(readFileSync(this.lockfile_location).toString())
+					if (data && data[this._name]) {
+						this.debug('lockfile', data[this._name])
+						this.remove_lock()
+						this.is_executing = false
+						this.write({ uid, data })
+					}
+				} catch (err) {
+					this.debug('starved - going unsafe')
+					this.remove_lock()
+					this.is_executing = false
+					this.write({ uid, data }, num ? num + 1 : 1)
+				}
+			} else {
+				await new Promise((resolve) => {
+					setTimeout(() => {
+						resolve({})
+						this.write({ uid, data }, num ? num + 1 : 1)
+					}, Math.floor(this.polling_interval / 2))
+				})
+			}
 		}
 	}
 }
