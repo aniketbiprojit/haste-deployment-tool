@@ -32,8 +32,10 @@ export const get_logs = async ({
 	return new Promise<{ logs: string; errors: string; total_logs_len: number; total_errors_len: number }>(
 		(resolve, reject) => {
 			API.connect((err) => {
-				console.error(err, 'err')
-				if (err !== null) reject(err)
+				if (err !== null) {
+					console.error(err, 'err')
+					reject(err)
+				}
 				API.list((err, list) => {
 					if (err !== null) {
 						console.error(err)

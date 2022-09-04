@@ -51,7 +51,7 @@ export class PersistentStore<T extends any = DataState> {
 
 	debug(...args: any[]) {
 		if (this.is_debug) {
-			console.debug('[\x1b[36m', this._name, 'INFO', '\x1b[0m]', ...args)
+			console.debug(`\x1b[36m${this._name}[INFO]\x1b[0m`, ...args)
 		}
 	}
 
