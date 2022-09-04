@@ -12,7 +12,15 @@ export const get_list = async () => {
 					console.error(err)
 					reject(err)
 				}
-				resolve([...list.map((x) => ({ ...x, pm2_env: { status: x?.['pm2_env']?.status } }))])
+				resolve([
+					...list.map((x) => ({
+						...x,
+						pm2_env: {
+							status: x?.['pm2_env']?.status,
+						},
+						versioning: (x?.['pm2_env'] as any)?.versioning ?? {},
+					})),
+				])
 			})
 		})
 	})

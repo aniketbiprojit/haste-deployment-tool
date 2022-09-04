@@ -9,8 +9,8 @@ export const Nav: React.FC = () => {
 					<div className='container relative flex flex-wrap justify-between items-center mx-auto'>
 						<a href='https://flowbite.com/' className='flex items-center'>
 							<img src='/logo.png' className='mr-3 h-10' alt='Flowbite Logo' />
-							<span className='self-center text-xl font-semibold whitespace-nowrap dark:text-white'>
-								Haste
+							<span className='logo-font self-center text-xl font-semibold whitespace-nowrap dark:text-white'>
+								HASTE
 							</span>
 						</a>
 						<button

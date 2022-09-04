@@ -32,3 +32,12 @@ a {
 .bg-added {
 	background: #010d1e;
 }
+
+@font-face {
+	font-family: 'AdventureSubtitles';
+	src: url('/Adventure Subtitles.ttf');
+}
+
+.logo-font {
+	font-family: 'AdventureSubtitles';
+}
