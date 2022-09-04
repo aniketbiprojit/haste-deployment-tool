@@ -19,7 +19,7 @@ export const AuthProvider = ({ children }: any) => {
 }
 
 export const useAuth = () => {
-	const { query, isReady } = useRouter()
+	const { query, isReady, push } = useRouter()
 
 	const { auth, setAuth } = useContext(AuthContext)
 
@@ -30,7 +30,10 @@ export const useAuth = () => {
 			},
 		})
 		if (data.ok) {
-			setTimeout(() => setAuth(AuthState.True), 1000)
+			setTimeout(() => {
+				setAuth(AuthState.True)
+				push('/')
+			}, 1000)
 			return
 		} else {
 		}
