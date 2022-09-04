@@ -1,12 +1,13 @@
-import { spawnSync } from 'child_process'
 import { readFileSync } from 'fs'
 import API from 'pm2'
 
 export const get_list = async () => {
 	return new Promise<any[]>((resolve, reject) => {
 		API.connect((err) => {
-			console.error(err, 'err')
-			if (err !== null) reject(err)
+			if (err !== null) {
+				console.error(err, 'err')
+				reject(err)
+			}
 			API.list((err, list) => {
 				if (err !== null) {
 					console.error(err)

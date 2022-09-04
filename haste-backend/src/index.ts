@@ -44,6 +44,7 @@ const app = express()
 app.use(cors())
 
 app.use(express.json())
+app.use(express.urlencoded({ extended: true }))
 
 const checkKeys = (keys: string[], obj: Object) => {
 	for (let key of keys) {
@@ -139,6 +140,7 @@ app.post(
 	'/add-email',
 	(req, res, next) => isAuthorizedMiddleware(req, res, next, AllowedExecution.AddEmail),
 	async (req, res) => {
+		console.log(req.body)
 		if (!checkKeys(['email', 'allowed_executions'], req.body)) {
 			return res.status(400).send({ error: 'bad request' })
 		}
