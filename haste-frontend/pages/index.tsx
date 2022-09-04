@@ -3,6 +3,7 @@ import Head from 'next/head'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
+import { Nav } from '../components/Nav'
 import styles from '../styles/Home.module.css'
 import { getAPI, getHeaders } from '../utils/getAPI'
 
@@ -44,6 +45,7 @@ const Home: NextPage = () => {
 				<meta name='description' content='This is a simple API to monitor your projects on a server.' />
 				<link rel='icon' href='/favicon.ico' />
 			</Head>
+			<Nav />
 			<div className=''>
 				<h1 className='text-3xl font-bold'>Haste Deployment API</h1>
 				<p className='text-gray-500'>This is a simple API to monitor your projects on a server.</p>
