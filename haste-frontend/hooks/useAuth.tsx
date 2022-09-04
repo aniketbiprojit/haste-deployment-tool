@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState, createContext, Dispatch, SetStateAction, useContext } from 'react'
 
 export enum AuthState {
 	False,
@@ -8,10 +8,20 @@ export enum AuthState {
 	AuthorizationFailed,
 }
 
+const AuthContext = createContext<{ auth: AuthState; setAuth: Dispatch<SetStateAction<AuthState>> }>({
+	auth: AuthState.False,
+	setAuth: () => {},
+})
+
+export const AuthProvider = ({ children }: any) => {
+	const [auth, setAuth] = useState(AuthState.False)
+	return <AuthContext.Provider value={{ auth: auth, setAuth }}>{children}</AuthContext.Provider>
+}
+
 export const useAuth = () => {
 	const { query, isReady } = useRouter()
 
-	const [auth, setAuth] = useState<AuthState>(AuthState.False)
+	const { auth, setAuth } = useContext(AuthContext)
 
 	const checkAuth = async (token: string) => {
 		const data = await fetch(new URL('auth', process.env.NEXT_PUBLIC_SERVER), {

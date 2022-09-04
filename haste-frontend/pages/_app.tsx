@@ -1,9 +1,9 @@
 import '../styles/globals.css'
 import type { AppProps } from 'next/app'
-import { AuthState, useAuth } from '../hooks/useAuth'
+import { AuthProvider, AuthState, useAuth } from '../hooks/useAuth'
 import { Authorize } from '../components/Authorize'
 
-function HasteApplication({ Component, pageProps }: AppProps) {
+function HasteAuthApplication({ Component, pageProps }: AppProps) {
 	const { auth } = useAuth()
 
 	switch (auth) {
@@ -34,6 +34,14 @@ function HasteApplication({ Component, pageProps }: AppProps) {
 		default:
 			return <></>
 	}
+}
+
+function HasteApplication(props: AppProps) {
+	return (
+		<AuthProvider>
+			<HasteAuthApplication {...props} />
+		</AuthProvider>
+	)
 }
 
 export default HasteApplication

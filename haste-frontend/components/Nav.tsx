@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { useState } from 'react'
 
 export const Nav: React.FC = () => {
@@ -7,8 +8,8 @@ export const Nav: React.FC = () => {
 			<div>
 				<nav className='bg-transparent border-gray-200 px-2 sm:px-4 py-2.5 rounded'>
 					<div className='container relative flex flex-wrap justify-between items-center mx-auto'>
-						<a href='https://flowbite.com/' className='flex items-center'>
-							<img src='/logo.png' className='mr-3 h-10' alt='Flowbite Logo' />
+						<a href='#' className='flex items-center'>
+							<img src='/logo.png' className='mr-3 h-10' alt='Haste' />
 							<span className='logo-font self-center text-xl font-semibold whitespace-nowrap dark:text-white'>
 								HASTE
 							</span>
@@ -44,13 +45,21 @@ export const Nav: React.FC = () => {
 						>
 							<ul className='flex flex-col p-4 mt-4 rounded-lg border border-gray-100 md:flex-row md:space-x-8 md:mt-0 md:text-sm md:font-medium md:border-0  dark:border-gray-700'>
 								<li onClick={() => setDropdown(false)}>
-									<a
-										href='#'
-										className='block py-2 pr-4 pl-3 text-white bg-blue-700 rounded md:bg-transparent md:text-blue-700 md:p-0 dark:text-white'
-										aria-current='page'
-									>
-										Home
-									</a>
+									<Link href='/' aria-current='page'>
+										<span
+											className='block py-2 pr-4 pl-3 text-white bg-blue-700 rounded md:bg-transparent md:text-blue-700 md:p-0 dark:text-white'
+											aria-current='page'
+										>
+											Home
+										</span>
+									</Link>
+								</li>
+								<li onClick={() => setDropdown(false)}>
+									<Link href='/users' aria-current='page'>
+										<span className='block py-2 pr-4 pl-3 text-gray-700 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-gray-400 md:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent'>
+											Users
+										</span>
+									</Link>
 								</li>
 								<li
 									onClick={() => {

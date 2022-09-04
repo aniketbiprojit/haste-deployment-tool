@@ -41,3 +41,10 @@ a {
 .logo-font {
 	font-family: 'AdventureSubtitles';
 }
+
+input[type='checkbox']:focus {
+	outline: 0;
+}
+input[type='text']:focus {
+	outline: 0;
+}
