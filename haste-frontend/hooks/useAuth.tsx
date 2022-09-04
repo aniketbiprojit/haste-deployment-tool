@@ -60,7 +60,7 @@ export const useAuth = () => {
 
 	useEffect(() => {
 		console.log('effect')
-		if (isReady) {
+		if (isReady && auth !== AuthState.True) {
 			const token = localStorage.getItem('token')
 			if (token) {
 				checkAuth(token)
