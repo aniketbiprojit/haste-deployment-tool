@@ -1,10 +1,39 @@
 import '../styles/globals.css'
 import type { AppProps } from 'next/app'
-import { useAuth } from './hooks/useAuth'
+import { AuthState, useAuth } from './hooks/useAuth'
+import { Authorize } from '../components/Authorize'
 
-function MyApp({ Component, pageProps }: AppProps) {
+function HasteApplication({ Component, pageProps }: AppProps) {
 	const { auth } = useAuth()
-	return auth ? <Component {...pageProps} /> : <div>Authorizing...</div>
+
+	switch (auth) {
+		case AuthState.False:
+			return (
+				<>
+					<div>Authorizing...</div>
+				</>
+			)
+
+		case AuthState.True:
+			return (
+				<>
+					<Component {...pageProps} />
+				</>
+			)
+
+		case AuthState.Redirect:
+			return (
+				<>
+					<Authorize />
+				</>
+			)
+
+		case AuthState.AuthorizationFailed:
+			return 'Failed'
+
+		default:
+			return <></>
+	}
 }
 
-export default MyApp
+export default HasteApplication

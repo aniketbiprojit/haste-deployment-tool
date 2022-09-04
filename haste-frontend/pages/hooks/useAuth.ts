@@ -1,10 +1,17 @@
 import { useRouter } from 'next/router'
 import { useCallback, useEffect, useState } from 'react'
 
+export enum AuthState {
+	False,
+	True,
+	Redirect,
+	AuthorizationFailed,
+}
+
 export const useAuth = () => {
 	const { query, isReady } = useRouter()
 
-	const [auth, setAuth] = useState<boolean>(false)
+	const [auth, setAuth] = useState<AuthState>(AuthState.False)
 
 	const checkAuth = async (token: string) => {
 		const data = await fetch(new URL('auth', process.env.NEXT_PUBLIC_SERVER), {
@@ -13,10 +20,9 @@ export const useAuth = () => {
 			},
 		})
 		if (data.ok) {
-			setTimeout(() => setAuth(true), 1000)
+			setTimeout(() => setAuth(AuthState.True), 1000)
 			return
 		} else {
-			window.location.href = `https://github.com/login/oauth/authorize?client_id=${process.env.NEXT_PUBLIC_CLIENT_ID}&scope=read:user,user:email`
 		}
 	}
 
@@ -30,8 +36,13 @@ export const useAuth = () => {
 		if (response.ok) {
 			const { token } = await response.json()
 			localStorage.setItem('token', token)
-			setAuth(true)
+			return setAuth(AuthState.True)
 		}
+
+		if (response.status === 401) {
+			return setTimeout(() => setAuth(AuthState.AuthorizationFailed), 1000)
+		}
+		return setTimeout(() => setAuth(AuthState.False), 1000)
 	}, [query])
 
 	useEffect(() => {
@@ -43,7 +54,7 @@ export const useAuth = () => {
 			} else if (query.code) {
 				getToken()
 			} else {
-				window.location.href = `https://github.com/login/oauth/authorize?client_id=${process.env.NEXT_PUBLIC_CLIENT_ID}&scope=read:user,user:email`
+				setAuth(AuthState.Redirect)
 			}
 		}
 	}, [query, isReady])

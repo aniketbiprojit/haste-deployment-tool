@@ -126,7 +126,7 @@ app.get('/', async (req, res) => {
 	} catch (err) {
 		if (err instanceof AxiosError) {
 			return res
-				.status((err.status as unknown as number) || 500)
+				.status((err.response?.status as unknown as number) || 500)
 				.send({ error: 'Failed', message: err?.response?.data })
 		}
 		console.error(err)
