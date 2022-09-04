@@ -29,7 +29,7 @@ function HasteApplication({ Component, pageProps }: AppProps) {
 			)
 
 		case AuthState.AuthorizationFailed:
-			return 'Failed'
+			return <h1 className='text-3xl font-bold underline'>Failed </h1>
 
 		default:
 			return <></>
