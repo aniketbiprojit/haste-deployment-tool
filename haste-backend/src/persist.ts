@@ -104,7 +104,7 @@ export class PersistentStore<T extends any = DataState> {
 		try {
 			if (existsSync(this.db_location)) {
 				if (this.can_execute() && this.is_executing === false) {
-					this.create_lock('init')
+					// this.create_lock('init')
 					this.is_executing = true
 
 					try {
@@ -131,7 +131,7 @@ export class PersistentStore<T extends any = DataState> {
 					}
 
 					this.is_executing = false
-					this.remove_lock()
+					// this.remove_lock()
 				}
 			} else {
 				if (init_data)
