@@ -10,11 +10,12 @@ if (!existsSync(db_dir)) {
 }
 
 export enum AllowedExecution {
-	AddEmail,
-	CheckDeploymentStatus,
-	ReadEnvironment,
-	Deploy,
-	AddServer,
+	AddEmail = 'Add Emails',
+	CheckDeploymentStatus = 'Check Deployment Status',
+	ReadEnvironment = 'Read Environment',
+	Deploy = 'Deploy',
+	AddServer = 'Add Server',
+	ViewUsers = 'View Users',
 }
 
 type DataState = {
@@ -40,6 +41,10 @@ export class PersistentStore<T extends any = DataState> {
 
 	is_debug = false
 	private _name = ''
+
+	get_hashmap_state() {
+		return Object.assign({}, this.hashmap_state)
+	}
 
 	constructor(name: string, is_debug = process.env.DEBUG_PERSISTENCE === 'true') {
 		this._name = name

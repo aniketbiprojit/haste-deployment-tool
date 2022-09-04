@@ -3,6 +3,7 @@
 import { useRouter } from 'next/router'
 import { useEffect, useRef, useState } from 'react'
 import { getAPI, getHeaders } from '../../utils/getAPI'
+import styles from '../../styles/Home.module.css'
 
 const ServerData = () => {
 	const { isReady, query } = useRouter()
@@ -77,25 +78,43 @@ const ServerData = () => {
 
 	return (
 		<>
-			{
-				<textarea
-					ref={logRef}
-					rows={20}
-					style={{ width: '450px' }}
-					onChange={() => {}}
-					value={logData?.logs ?? ''}
-				/>
-			}
+			<div className={styles.container}>
+				<>
+					<div className={styles.inner}>
+						<div className=''>
+							<textarea
+								ref={logRef}
+								rows={20}
+								style={{ width: '450px' }}
+								onChange={() => {}}
+								value={
+									logData?.logs
+										.slice(20)
+										.replaceAll(String.fromCharCode(27), '')
+										.replaceAll(new RegExp(/\[[0-9]*m/g), '') ?? ''
+								}
+							/>
+						</div>
 
-			{
-				<textarea
-					ref={errorRef}
-					rows={20}
-					style={{ width: '450px' }}
-					onChange={() => {}}
-					value={logData?.errors ?? ''}
-				/>
-			}
+						<div className=''>
+							<textarea
+								ref={errorRef}
+								rows={20}
+								style={{ width: '450px' }}
+								onChange={() => {}}
+								value={
+									logData?.errors
+										.slice(20)
+										.replaceAll(String.fromCharCode(27), '')
+										.replaceAll(new RegExp(/\[[0-9]*m/g), '') ??
+									'' ??
+									''
+								}
+							/>
+						</div>
+					</div>
+				</>
+			</div>
 		</>
 	)
 }

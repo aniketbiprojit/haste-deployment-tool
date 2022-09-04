@@ -19,7 +19,7 @@ export const servers = new PersistentStore<{ path: string }>('servers')
 store.init(10000, [
 	{
 		data: {
-			allowed_executions: [0],
+			allowed_executions: [AllowedExecution.AddEmail],
 			root_access: true,
 		},
 		uid: process.env.SUDO_EMAIL!,
@@ -208,6 +208,14 @@ app.get(
 			console.error(err)
 			return res.status(500).send({ error: 'Failed' })
 		}
+	}
+)
+
+app.get(
+	'/users',
+	(req, res, next) => isAuthorizedMiddleware(req, res, next, AllowedExecution.ViewUsers),
+	async (_req, res) => {
+		res.send(store.get_hashmap_state().data)
 	}
 )
 

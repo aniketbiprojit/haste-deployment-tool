@@ -84,7 +84,7 @@ const AddUser: React.FC = () => {
 	const [executions, setExecutions] = useState<AllowedExecution[]>([])
 	return (
 		<tr className={`${styles.serverItem} relative py-3 px-4 my-4 rounded border-collapse shadow-md `}>
-			<th className='py-3 px-6'>
+			<th className='py-3 px-6 flex'>
 				<div>
 					<label
 						htmlFor='email'
