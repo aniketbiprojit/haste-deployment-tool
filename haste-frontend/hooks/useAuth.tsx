@@ -29,6 +29,7 @@ export const useAuth = () => {
 				Authorization: `Bearer ${token}`,
 			},
 		})
+
 		if (data.ok) {
 			setTimeout(() => {
 				setAuth(AuthState.True)
@@ -36,6 +37,11 @@ export const useAuth = () => {
 			}, 1000)
 			return
 		} else {
+			setTimeout(() => {
+				localStorage.clear()
+				setAuth(AuthState.False)
+			}, 1000)
+			return
 		}
 	}
 
