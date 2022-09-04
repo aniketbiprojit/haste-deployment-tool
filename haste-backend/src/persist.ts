@@ -60,7 +60,7 @@ export class PersistentStore<T extends any = DataState> {
 	init_status = false
 
 	create_lock(uid: string) {
-		writeFileSync(this.lockfile_location, JSON.stringify({ [this._name]: uid }))
+		writeFileSync(this.lockfile_location, JSON.stringify({ thread_name: this._name, uid, pid: process.pid }))
 		this.debug('locking')
 	}
 
@@ -199,7 +199,7 @@ export class PersistentStore<T extends any = DataState> {
 				try {
 					// in case a thread stops midway but the lock is not removed
 					const data = JSON.parse(readFileSync(this.lockfile_location).toString())
-					if (data && data[this._name]) {
+					if (data && data['thread_name'] === this._name) {
 						this.debug('lockfile', data[this._name])
 						this.remove_lock()
 						this.is_executing = false
