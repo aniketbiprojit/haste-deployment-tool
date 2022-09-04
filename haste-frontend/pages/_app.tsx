@@ -1,6 +1,6 @@
 import '../styles/globals.css'
 import type { AppProps } from 'next/app'
-import { AuthState, useAuth } from './hooks/useAuth'
+import { AuthState, useAuth } from '../hooks/useAuth'
 import { Authorize } from '../components/Authorize'
 
 function HasteApplication({ Component, pageProps }: AppProps) {
