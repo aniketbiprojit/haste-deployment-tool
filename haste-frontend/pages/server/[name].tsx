@@ -4,6 +4,7 @@ import { useRouter } from 'next/router'
 import { useEffect, useRef, useState } from 'react'
 import { getAPI, getHeaders } from '../../utils/getAPI'
 import styles from '../../styles/Home.module.css'
+import { Nav } from '../../components/Nav'
 // import { CodeMirrorComponent } from '../../components/CodeMirror'
 
 const ServerData = () => {
@@ -78,12 +79,14 @@ const ServerData = () => {
 		<>
 			<div className={styles.container}>
 				<>
-					<div className={styles.inner}>
-						<div className=''>
+					<Nav />
+
+					<div className={styles.inner + ` my-5`}>
+						<div className='my-5'>
 							<div
 								ref={logRef}
 								style={{ height: '480px', width: '80vw', overflowY: 'scroll' }}
-								className='border w-full rounded p-5'
+								className='border w-full  rounded p-5'
 							>
 								<pre>
 									<code>
@@ -95,7 +98,7 @@ const ServerData = () => {
 							</div>
 						</div>
 
-						<div className=''>
+						<div className='my-5'>
 							<div
 								ref={errorRef}
 								style={{ height: '480px', width: '80vw', overflowY: 'scroll' }}
