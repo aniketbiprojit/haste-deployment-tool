@@ -4,14 +4,14 @@
 // import { EditorState } from '@codemirror/state'
 // import { json } from '@codemirror/lang-json'
 // import { oneDark } from '@codemirror/theme-one-dark'
+// import { basicSetup } from '@codemirror/basic-setup'
 
 // class DataHolder {
 // 	public static editor: EditorState
 // }
 
-// export const CodeMirrorComponent: React.FC<{ ref: RefObject<HTMLDivElement>; initialValue: string }> = ({
+// export const CodeMirrorComponent: React.FC<{ ref?: RefObject<HTMLDivElement>; initialValue: string }> = ({
 // 	initialValue,
-// 	ref,
 // }) => {
 // 	// Local state
 // 	const [editorValue, setEditorValue] = useState<string>('')
@@ -60,25 +60,26 @@
 // 		} else {
 // 			DataHolder.editor = EditorState.create({
 // 				doc: initialValue,
-// 				extensions: [json(), oneDark, onUpdate()],
+// 				extensions: [basicSetup, json(), oneDark, onUpdate()],
 // 			})
 // 			return DataHolder.editor
 // 		}
 // 	}
 // 	// Initilize view
-// 	useEffect(function initEditorView() {
-// 		const el = document.getElementById('codemirror-editor-wrapper')
+// 	useEffect(
+// 		function initEditorView() {
+// 			const el = document.getElementById('codemirror-editor-wrapper')
 
-// 		editor.current = new EditorView({
-// 			state: getEditorState(),
-// 			parent: el as Element,
-// 		})
-// 	}, [])
+// 			editor.current = new EditorView({
+// 				state: getEditorState(),
+// 				parent: el as Element,
+// 			})
+// 		},
+// 		[initialValue]
+// 	)
 // 	useEffect(() => {
 // 		setEditorValue(initialValue)
 // 	}, [initialValue])
-
-// 	// Component for display text
 
 // 	// Component for display array from editor
 // 	// const OutputArray = () => (
@@ -91,13 +92,12 @@
 
 // 	return (
 // 		<div>
-// 			<div ref={ref} style={{ height: '480px', overflowY: 'scroll' }} className='border w-full rounded p-5'>
-// 				<pre>
-// 					<code>{editorValue}</code>
-// 				</pre>
-// 			</div>
+// 			{/* <div className='grid grid-cols-2 gap-5'> */}
+// 			<div style={{ height: '200px', overflow: 'scroll' }} id='codemirror-editor-wrapper' />
+// 			{/* <OutputText /> */}
+// 			{/* </div> */}
+// 			{/* <OutputArray /> */}
 // 		</div>
 // 	)
 // }
-
 export {}

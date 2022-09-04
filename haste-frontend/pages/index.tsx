@@ -108,7 +108,7 @@ const Home: NextPage = () => {
 											&nbsp;{elem.status}
 										</td>
 										<td className='py-4 px-6'>{elem.versioning?.revision.slice(0, 7)}</td>
-										<td className='py-4 px-6'>
+										<td className='py-4 px-6 cursor-pointer'>
 											<Link href={`/server/${elem.name}`}>
 												<span className='inline-flex items-center text-blue-600 hover:underline right-0'>
 													<svg

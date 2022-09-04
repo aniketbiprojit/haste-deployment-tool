@@ -4,6 +4,7 @@ import { useRouter } from 'next/router'
 import { useEffect, useRef, useState } from 'react'
 import { getAPI, getHeaders } from '../../utils/getAPI'
 import styles from '../../styles/Home.module.css'
+// import { CodeMirrorComponent } from '../../components/CodeMirror'
 
 const ServerData = () => {
 	const { isReady, query } = useRouter()
@@ -81,13 +82,12 @@ const ServerData = () => {
 						<div className=''>
 							<div
 								ref={logRef}
-								style={{ height: '480px', width: '380px', overflowY: 'scroll' }}
+								style={{ height: '480px', width: '80vw', overflowY: 'scroll' }}
 								className='border w-full rounded p-5'
 							>
 								<pre>
 									<code>
 										{logData?.logs
-											.slice(20)
 											.replaceAll(String.fromCharCode(27), '')
 											.replaceAll(new RegExp(/\[[0-9]*m/g), '') ?? ''}
 									</code>
@@ -98,13 +98,12 @@ const ServerData = () => {
 						<div className=''>
 							<div
 								ref={errorRef}
-								style={{ height: '480px', width: '380px', overflowY: 'scroll' }}
+								style={{ height: '480px', width: '80vw', overflowY: 'scroll' }}
 								className='border w-full rounded p-5'
 							>
 								<pre>
 									<code>
 										{logData?.errors
-											.slice(20)
 											.replaceAll(String.fromCharCode(27), '')
 											.replaceAll(new RegExp(/\[[0-9]*m/g), '') ?? ''}
 									</code>

@@ -33,7 +33,7 @@ export const useAuth = () => {
 		if (data.ok) {
 			setTimeout(() => {
 				setAuth(AuthState.True)
-				push('/')
+				if (query.code) push('/')
 			}, 1000)
 			return
 		} else {
