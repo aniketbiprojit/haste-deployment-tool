@@ -30,7 +30,7 @@ class JSONParseFail extends Error {
 }
 
 export class PersistentStore<T extends any = DataState> {
-	lockfile_location = join(db_dir, 'store.lock')
+	lockfile_location: string
 	db_location: string
 	cache_db_location: string
 
@@ -48,6 +48,8 @@ export class PersistentStore<T extends any = DataState> {
 
 	constructor(name: string, is_debug = process.env.DEBUG_PERSISTENCE === 'true') {
 		this._name = name
+
+		this.lockfile_location = join(db_dir, `${name}.store.lock`)
 
 		this.cache_db_location = join(db_dir, `${name}.cache.store.db`)
 		this.db_location = join(db_dir, `${name}.store.db`)

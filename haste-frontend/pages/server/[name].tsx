@@ -63,8 +63,6 @@ const ServerData = () => {
 
 		if (isReady && logData?.logs !== undefined && logData?.errors !== undefined) {
 			if (poll === -1) {
-				console.log('polling')
-
 				const poll_interval = setInterval(() => {
 					setCounter((counter) => counter + 1)
 					getLogs()

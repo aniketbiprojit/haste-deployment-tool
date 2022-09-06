@@ -36,7 +36,7 @@ store.init(10000, [
 	}
 	servers.init(10000, server_init_data)
 }
-const local_store = new PersistentStore<string>('local-state')
+const local_store = new PersistentStore<string | { added_at: number }>('local-state')
 local_store.init()
 
 const app = express()
@@ -70,7 +70,6 @@ app.get('/auth', async (req, res) => {
 })
 
 app.get('/', async (req, res) => {
-	console.log(req.query)
 	try {
 		if (checkKeys(['redirect', 'auth', 'code'], req.query)) {
 			const { code } = req.query as { code: string }
@@ -92,13 +91,13 @@ app.get('/', async (req, res) => {
 						},
 					}
 				)
-				const { access_token, scope, token_type } = resp.data
+				const { access_token } = resp.data
 				await local_store.write({ uid: code, data: access_token })
 			}
 
 			const access_token = local_store.read(code)
 
-			const { email } = (
+			let { email } = (
 				await axios.get('https://api.github.com/user', {
 					headers: {
 						Authorization: `Bearer ${access_token}`,
@@ -106,13 +105,27 @@ app.get('/', async (req, res) => {
 				})
 			).data
 
-			await store.write({
-				uid: process.env.SUDO_EMAIL!,
-				data: {
-					root_access: true,
-					allowed_executions: [],
-				},
-			})
+			if (email === null) {
+				const data: { primary: boolean; email: string }[] = (
+					await axios.get('https://api.github.com/user/emails', {
+						headers: {
+							Authorization: `Bearer ${access_token}`,
+						},
+					})
+				).data
+
+				const primary_email = data.filter((e) => e.primary)?.[0]?.email
+				if (store.read(primary_email)) {
+					email = primary_email
+				} else {
+					for (const { email: resp_email } of data) {
+						if (store.read(resp_email)) {
+							email = resp_email
+							break
+						}
+					}
+				}
+			}
 
 			const execution_data = store.read(email)
 			if (!execution_data) {
@@ -140,7 +153,6 @@ app.post(
 	'/add-email',
 	(req, res, next) => isAuthorizedMiddleware(req, res, next, AllowedExecution.AddEmail),
 	async (req, res) => {
-		console.log(req.body)
 		if (!checkKeys(['email', 'allowed_executions'], req.body)) {
 			return res.status(400).send({ error: 'bad request' })
 		}
@@ -223,4 +235,11 @@ app.get(
 
 app.listen(port, () => {
 	console.log(`Listening on port ${port}`)
+	setInterval(() => {
+		const hashmap_state = local_store.get_hashmap_state()
+		for (const key in hashmap_state) {
+			local_store.write({ uid: key, data: '' })
+		}
+	}, 60_000)
+	// fbf4560b0d3fa06de32a: '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'
 })
