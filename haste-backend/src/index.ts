@@ -258,9 +258,10 @@ app.get(
 				appendFileSync(error_file, code?.toString() ?? 'Unknown Error')
 			})
 
-			res.send('ok')
+			res.status(200).send('ok')
 		} catch (err) {
 			console.error(err)
+			res.status(500).send(err)
 		}
 	}
 )
