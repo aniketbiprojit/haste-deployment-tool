@@ -82,7 +82,11 @@ const ServerData = () => {
 					<div className={styles.inner + ` my-5`}>
 						<button
 							onClick={async () => {
-								const url = getAPI('deploy?server_id=' + query.name)
+								const url = getAPI(
+									`deploy?server_id=${query.name}&type=${
+										(query.name as string).includes('frontend') ? 'frontend' : 'backend'
+									}`
+								)
 								await fetch(url, {
 									headers: getHeaders(),
 								})

@@ -231,10 +231,10 @@ app.get(
 	async (req, res, next) => isAuthorizedMiddleware(req, res, next, AllowedExecution.Deploy),
 	async (req, res) => {
 		try {
-			const { server_id } = req.query as { server_id: string }
+			const { server_id, type } = req.query as { server_id: string; type: string }
 			const server = servers.read(server_id)
 
-			const child_process = spawn(join(__dirname, '..', 'scripts', 'backend.deploy.sh'), [])
+			const child_process = spawn(join(__dirname, '..', 'scripts', `${type}.deploy.sh`), [server_id, server.path])
 
 			const { log_file, error_file } = await get_logs({
 				name: server_id,
