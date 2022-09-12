@@ -9,7 +9,8 @@ import { join } from 'path'
 import './pm2_log'
 import { get_list, get_logs } from './pm2_log'
 import cors from 'cors'
-import { readFileSync } from 'fs'
+import { appendFileSync, readFileSync } from 'fs'
+import { spawn } from 'child_process'
 
 const port = process.env.PORT || 8080
 
@@ -221,6 +222,45 @@ app.get(
 		} catch (err) {
 			console.error(err)
 			return res.status(500).send({ error: 'Failed' })
+		}
+	}
+)
+
+app.get(
+	'/deploy',
+	async (req, res, next) => isAuthorizedMiddleware(req, res, next, AllowedExecution.Deploy),
+	async (req, res) => {
+		try {
+			const { server_id } = req.query as { server_id: string }
+			const server = servers.read(server_id)
+			const child_process = spawn(join(server.path, 'deploy.haste.sh'))
+
+			const { log_file, error_file } = await get_logs({
+				name: server_id,
+			})
+			child_process.on('message', (message) => {
+				console.log({ message }, log_file)
+			})
+
+			child_process.on('error', (message) => {
+				console.error({ message }, error_file)
+			})
+
+			child_process.stdout.on('data', (message) => {
+				appendFileSync(log_file, message.toString())
+			})
+
+			child_process.stdout.on('error', (message) => {
+				appendFileSync(error_file, message.toString())
+			})
+
+			child_process.on('exit', (code) => {
+				appendFileSync(error_file, code?.toString() ?? 'Unknown Error')
+			})
+
+			res.send('ok')
+		} catch (err) {
+			console.error(err)
 		}
 	}
 )
