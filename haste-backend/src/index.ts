@@ -9,7 +9,7 @@ import { join } from 'path'
 import './pm2_log'
 import { get_list, get_logs } from './pm2_log'
 import cors from 'cors'
-import { appendFileSync, readFileSync } from 'fs'
+import { appendFileSync, copyFileSync, readFileSync } from 'fs'
 import { spawn } from 'child_process'
 
 const port = process.env.PORT || 8080
@@ -233,7 +233,8 @@ app.get(
 		try {
 			const { server_id } = req.query as { server_id: string }
 			const server = servers.read(server_id)
-			const child_process = spawn(join(server.path, 'deploy.haste.sh'))
+
+			const child_process = spawn(join(__dirname, '..', 'scripts', 'backend.deploy.sh'), [])
 
 			const { log_file, error_file } = await get_logs({
 				name: server_id,
@@ -258,10 +259,10 @@ app.get(
 				appendFileSync(error_file, code?.toString() ?? 'Unknown Error')
 			})
 
-			res.status(200).send('ok')
+			return res.status(200).send('ok')
 		} catch (err) {
 			console.error(err)
-			res.status(500).send(err)
+			return res.status(500).send(err)
 		}
 	}
 )
