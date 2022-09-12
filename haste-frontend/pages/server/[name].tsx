@@ -73,7 +73,7 @@ const ServerData = () => {
 							logsCalled = false
 						})
 					}
-				}, 1) as unknown as number
+				}, 10_000) as unknown as number
 
 				setPoll(poll_interval as any)
 			}
