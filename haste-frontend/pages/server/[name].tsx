@@ -49,6 +49,7 @@ const ServerData = () => {
 	}, [isReady])
 
 	const [, setCounter] = useState(0)
+	const [called, setCalled] = useState(false)
 
 	const logRef = useRef<HTMLDivElement>(null)
 	const errorRef = useRef<HTMLDivElement>(null)
@@ -82,14 +83,22 @@ const ServerData = () => {
 					<div className={styles.inner + ` my-5`}>
 						<button
 							onClick={async () => {
-								const url = getAPI(
-									`deploy?server_id=${query.name}&type=${
-										(query.name as string).includes('frontend') ? 'frontend' : 'backend'
-									}`
-								)
-								await fetch(url, {
-									headers: getHeaders(),
-								})
+								setCalled(true)
+								if (called === false) {
+									try {
+										const url = getAPI(
+											`deploy?server_id=${query.name}&type=${
+												(query.name as string).includes('frontend') ? 'frontend' : 'backend'
+											}`
+										)
+										await fetch(url, {
+											headers: getHeaders(),
+										})
+									} catch (err) {
+										console.error(err)
+									}
+									setCalled(false)
+								}
 							}}
 							className='inline-flex items-center py-2 px-4 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800'
 						>

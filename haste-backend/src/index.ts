@@ -257,12 +257,11 @@ app.get(
 
 			child_process.on('exit', (code) => {
 				appendFileSync(error_file, code?.toString() ?? 'Unknown Error')
+				res.status(200).send('ok')
 			})
-
-			return res.status(200).send('ok')
 		} catch (err) {
 			console.error(err)
-			return res.status(500).send(err)
+			res.status(500).send(err)
 		}
 	}
 )
