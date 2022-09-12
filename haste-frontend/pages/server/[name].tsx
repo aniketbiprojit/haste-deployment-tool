@@ -8,7 +8,7 @@ import { Nav } from '../../components/Nav'
 // import { CodeMirrorComponent } from '../../components/CodeMirror'
 
 const ServerData = () => {
-	const { isReady, query } = useRouter()
+	const { isReady, query, beforePopState } = useRouter()
 
 	const getLogs = async () => {
 		const url = getAPI('logs')
@@ -50,10 +50,11 @@ const ServerData = () => {
 
 	const [, setCounter] = useState(0)
 	const [called, setCalled] = useState(false)
+	let logsCalled = false
 
 	const logRef = useRef<HTMLDivElement>(null)
 	const errorRef = useRef<HTMLDivElement>(null)
-
+	let poll_interval: number
 	useEffect(() => {
 		if (logData?.logs && logRef.current) {
 			logRef.current.scrollTop = logRef.current.scrollHeight
@@ -64,16 +65,25 @@ const ServerData = () => {
 
 		if (isReady && logData?.logs !== undefined && logData?.errors !== undefined) {
 			if (poll === -1) {
-				const poll_interval = setInterval(() => {
+				poll_interval = setInterval(async () => {
 					setCounter((counter) => counter + 1)
-					getLogs()
-				}, 5_000)
+					if (logsCalled === false) {
+						logsCalled = true
+						getLogs().finally(() => {
+							logsCalled = false
+						})
+					}
+				}, 1) as unknown as number
 
 				setPoll(poll_interval as any)
 			}
 		}
 	}, [logData, poll, isReady])
 
+	beforePopState(() => {
+		clearInterval(poll_interval)
+		return true
+	})
 	return (
 		<>
 			<div className={styles.container}>
