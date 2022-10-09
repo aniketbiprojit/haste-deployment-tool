@@ -2,7 +2,7 @@ import type { NextPage } from 'next'
 import Head from 'next/head'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Nav } from '../components/Nav'
 import styles from '../styles/Home.module.css'
 import { getAPI, getHeaders } from '../utils/getAPI'
@@ -10,11 +10,11 @@ import { getAPI, getHeaders } from '../utils/getAPI'
 const Home: NextPage = () => {
 	const { isReady } = useRouter()
 
-	let call_made = false
+	let call_made = useRef(false)
 
-	const listProcesses = async () => {
-		if (call_made === false) {
-			call_made = true
+	const listProcesses = useCallback(async () => {
+		if (call_made.current === false) {
+			call_made.current = true
 
 			const processes = await fetch(getAPI('running'), {
 				headers: getHeaders(),
@@ -37,7 +37,7 @@ const Home: NextPage = () => {
 				})
 			)
 		}
-	}
+	}, [])
 
 	const [processes, setProcesses] = useState<
 		{
@@ -51,7 +51,7 @@ const Home: NextPage = () => {
 
 	useEffect(() => {
 		if (isReady) listProcesses()
-	}, [isReady])
+	}, [isReady, listProcesses])
 
 	return (
 		<div className={styles.container}>

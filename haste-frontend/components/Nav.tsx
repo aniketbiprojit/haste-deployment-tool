@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
 
@@ -9,7 +10,7 @@ export const Nav: React.FC = () => {
 				<nav className='bg-transparent border-gray-200 px-2 sm:px-4 py-2.5 rounded'>
 					<div className='container relative flex flex-wrap justify-between items-center mx-auto'>
 						<a href='#' className='flex items-center'>
-							<img src='/logo.png' className='mr-3 h-10' alt='Haste' />
+							<Image src='/logo.png' className='mr-3 h-10' alt='Haste' />
 							<span className='logo-font self-center text-xl font-semibold whitespace-nowrap dark:text-white'>
 								HASTE
 							</span>

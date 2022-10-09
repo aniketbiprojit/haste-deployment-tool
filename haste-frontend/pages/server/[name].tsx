@@ -1,7 +1,7 @@
 // next js component with name slug
 
 import { useRouter } from 'next/router'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { getAPI, getHeaders } from '../../utils/getAPI'
 import styles from '../../styles/Home.module.css'
 import { Nav } from '../../components/Nav'
@@ -9,8 +9,13 @@ import { Nav } from '../../components/Nav'
 
 const ServerData = () => {
 	const { isReady, query, beforePopState } = useRouter()
-
-	const getLogs = async () => {
+	const [logData, setLogData] = useState<{
+		errors: string
+		logs: string
+		total_errors_len: number
+		total_logs_len: number
+	}>()
+	const getLogs = useCallback(async () => {
 		const url = getAPI('logs')
 
 		url.searchParams.set('server_id', query.name as string)
@@ -34,27 +39,20 @@ const ServerData = () => {
 			logs: (_logData?.logs ?? '') + data.logs,
 			errors: (_logData?.errors ?? '') + data.errors,
 		}))
-	}
+	}, [query, logData])
 
-	const [logData, setLogData] = useState<{
-		errors: string
-		logs: string
-		total_errors_len: number
-		total_logs_len: number
-	}>()
 	const [poll, setPoll] = useState<number>(-1)
 
 	useEffect(() => {
 		if (isReady && query.name) getLogs()
-	}, [isReady])
+	}, [isReady, getLogs, query.name])
 
 	const [, setCounter] = useState(0)
 	const [called, setCalled] = useState(false)
-	let logsCalled = false
+	let logsCalled = useRef<boolean>(false)
 
 	const logRef = useRef<HTMLDivElement>(null)
 	const errorRef = useRef<HTMLDivElement>(null)
-	let poll_interval: number
 	useEffect(() => {
 		if (logData?.logs && logRef.current) {
 			logRef.current.scrollTop = logRef.current.scrollHeight
@@ -65,12 +63,12 @@ const ServerData = () => {
 
 		if (isReady && logData?.logs !== undefined && logData?.errors !== undefined) {
 			if (poll === -1) {
-				poll_interval = setInterval(async () => {
+				const poll_interval = setInterval(async () => {
 					setCounter((counter) => counter + 1)
-					if (logsCalled === false) {
-						logsCalled = true
+					if (logsCalled.current === false) {
+						logsCalled.current = true
 						getLogs().finally(() => {
-							logsCalled = false
+							logsCalled.current = false
 						})
 					}
 				}, 10_000) as unknown as number
@@ -78,10 +76,10 @@ const ServerData = () => {
 				setPoll(poll_interval as any)
 			}
 		}
-	}, [logData, poll, isReady])
+	}, [logData, poll, isReady, getLogs])
 
 	beforePopState(() => {
-		clearInterval(poll_interval)
+		clearInterval(poll)
 		return true
 	})
 	return (
