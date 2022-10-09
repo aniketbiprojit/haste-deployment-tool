@@ -16,7 +16,13 @@ export const Authorize: React.FC = () => {
 						className='w-full max-w-sm bg-white rounded-lg border border-gray-200 shadow-md dark:bg-gray-800 dark:border-gray-700'
 					>
 						<div className='flex flex-col items-center py-10'>
-							<Image className='mb-3 w-24 h-24 rounded-full shadow-lg' src='/logo.png' alt='haste-logo' />
+							<Image
+								height='96px'
+								width='96px'
+								className='mb-3 w-24 h-24 rounded-full shadow-lg'
+								src='/logo.png'
+								alt='haste-logo'
+							/>
 							<h5 className='mb-1 text-xl font-medium text-gray-900 dark:text-white'>
 								Haste Deployment API
 							</h5>

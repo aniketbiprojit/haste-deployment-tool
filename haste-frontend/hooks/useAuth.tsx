@@ -40,6 +40,7 @@ export const useAuth = () => {
 			setTimeout(() => {
 				localStorage.clear()
 				setAuth(AuthState.False)
+				window.location.reload()
 			}, 1000)
 			return
 		}
@@ -58,7 +59,7 @@ export const useAuth = () => {
 			return setAuth(AuthState.True)
 		}
 
-		if (response.status === 401) {
+		if (response.status === 401 || !response.ok) {
 			return setTimeout(() => setAuth(AuthState.AuthorizationFailed), 1000)
 		}
 		return setTimeout(() => setAuth(AuthState.False), 1000)
@@ -73,6 +74,7 @@ export const useAuth = () => {
 				getToken()
 			} else {
 				setAuth(AuthState.Redirect)
+				window.location.reload()
 			}
 		}
 	}, [query, isReady])
